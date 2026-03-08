@@ -2,13 +2,17 @@ import 'package:health/health.dart';
 import '../../core/constants/health_types.dart';
 
 /// Abstraktions-Layer über Health Connect via `health` Package.
-/// WICHTIG: Wird NUR von Repositories verwendet, NIEMALS direkt von der UI!
+///
+/// ARCHITEKTUR-REGEL: Wird NUR von Repositories aufgerufen!
+/// Die UI greift NIEMALS direkt auf diesen Service zu.
+/// Aggregation/Verarbeitung passiert im Aggregation-Layer, nicht hier.
 class HealthService {
   final Health _health = Health();
 
-  // ── Berechtigungen ──────────────────────────────────────────
+  // ── Berechtigungen ───────────────────────────────────────────
 
-  /// Fragt alle benötigten Health Connect Berechtigungen an
+  /// Fragt alle benötigten Health Connect Berechtigungen an.
+  /// Gibt true zurück wenn alle Berechtigungen erteilt wurden.
   Future<bool> requestPermissions() async {
     try {
       final permissions = HealthTypes.allTypes
@@ -24,18 +28,21 @@ class HealthService {
     }
   }
 
-  /// Prüft ob Health Connect verfügbar und Berechtigungen vorhanden sind
+  /// Prüft ob Health Connect verfügbar und Berechtigungen vorhanden sind.
   Future<bool> isAvailable() async {
     try {
-      return await _health.hasPermissions(HealthTypes.allTypes) ?? false;
+      final hasPerms =
+          await _health.hasPermissions(HealthTypes.allTypes) ?? false;
+      return hasPerms;
     } catch (_) {
       return false;
     }
   }
 
-  // ── Rohdaten lesen (nur für Repositories) ──────────────────
+  // ── Rohdaten lesen ───────────────────────────────────────────
 
-  /// Liest Health-Rohdaten eines Zeitraums
+  /// Liest Health-Rohdaten für einen Zeitraum.
+  /// Entfernt automatisch Duplikate (verschiedene Apps können gleiche Daten liefern).
   Future<List<HealthDataPoint>> fetchRawData({
     required DateTime start,
     required DateTime end,
@@ -47,14 +54,14 @@ class HealthService {
         endTime: end,
         types: types,
       );
-      // Duplikate entfernen (verschiedene Apps können gleiche Daten liefern)
       return _health.removeDuplicates(data);
     } catch (_) {
       return [];
     }
   }
 
-  /// Aggregierte Schritte für einen Zeitraum
+  /// Aggregierte Gesamt-Schritte für einen Zeitraum.
+  /// Effizienter als Rohdaten summieren (nutzt Health Connect Aggregation).
   Future<int?> getTotalSteps(DateTime start, DateTime end) async {
     try {
       return await _health.getTotalStepsInInterval(start, end);

@@ -4,9 +4,10 @@ import '../../core/theme/vyro_colors.dart';
 import '../../core/theme/vyro_text_styles.dart';
 import '../../core/utils/date_helper.dart';
 import '../../core/utils/number_formatter.dart';
+import '../../providers/goal_providers.dart';
 import '../../providers/health_providers.dart';
 
-/// Overview-Screen (Platzhalter – wird in Phase 10 vollständig implementiert)
+/// Overview-Screen – Platzhalter (Phase 10 implementiert vollständiges Dashboard)
 class OverviewScreen extends ConsumerWidget {
   const OverviewScreen({super.key});
 
@@ -28,17 +29,11 @@ class OverviewScreen extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      DateHelper.getGreeting(),
-                      style: VyroTextStyles.greeting,
-                    ),
+                    Text(DateHelper.getGreeting(), style: VyroTextStyles.greeting),
                     const SizedBox(height: 6),
                     Text.rich(
                       TextSpan(children: [
-                        TextSpan(
-                          text: 'VYRO ',
-                          style: VyroTextStyles.title,
-                        ),
+                        TextSpan(text: 'VYRO ', style: VyroTextStyles.title),
                         TextSpan(
                           text: 'Fit',
                           style: VyroTextStyles.title.copyWith(
@@ -57,30 +52,26 @@ class OverviewScreen extends ConsumerWidget {
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Row(
-                  children: [
-                    _StreakBadge(
-                      value: '${streak.currentStreak}',
-                      label: 'Tage Streak',
-                    ),
+                child: streak.when(
+                  data: (s) => Row(children: [
+                    _StreakBadge(value: '${s.currentStreak}', label: 'Tage Streak'),
+                    const SizedBox(width: 10),
+                    _StreakBadge(value: '${s.weeklyGoalsCompleted}', label: 'Wochen-Ziel'),
                     const SizedBox(width: 10),
                     _StreakBadge(
-                      value: '${streak.weeklyGoalsCompleted}',
-                      label: 'Wochen-Ziel',
-                    ),
-                    const SizedBox(width: 10),
-                    _StreakBadge(
-                      value: streak.monthlyScore > 0
-                          ? NumberFormatter.percent(streak.monthlyScore)
+                      value: s.monthlyScore > 0
+                          ? NumberFormatter.percent(s.monthlyScore)
                           : '--',
                       label: 'Monats-Score',
                     ),
-                  ],
+                  ]),
+                  loading: () => const SizedBox(height: 56),
+                  error: (_, __) => const SizedBox.shrink(),
                 ),
               ),
             ),
 
-            // ── Inhalt (Phase 10 wird hier die Cards einbauen) ──
+            // ── Platzhalter-Inhalt (wird in Phase 10 ersetzt) ──
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.all(24),
@@ -90,18 +81,15 @@ class OverviewScreen extends ConsumerWidget {
                     children: [
                       const SizedBox(height: 32),
                       Icon(
-                        Icons.construction_outlined,
+                        Icons.check_circle_outline,
                         size: 40,
-                        color: VyroColors.accent.withOpacity(0.5),
+                        color: VyroColors.accent.withOpacity(0.6),
                       ),
                       const SizedBox(height: 16),
-                      Text(
-                        'Phase 1 erfolgreich!',
-                        style: VyroTextStyles.title,
-                      ),
+                      Text('Phasen 4–8 abgeschlossen', style: VyroTextStyles.title),
                       const SizedBox(height: 8),
                       Text(
-                        'Setup abgeschlossen. Das Dashboard wird in Phase 10 implementiert.',
+                        'Datenbank, Repositories, Aggregation und Providers sind aktiv.\nPhase 9 bringt die UI-Komponenten.',
                         style: VyroTextStyles.body.copyWith(
                           color: VyroColors.textSecondary,
                           height: 1.6,
@@ -118,8 +106,8 @@ class OverviewScreen extends ConsumerWidget {
                       ),
                     ),
                   ),
-                  error: (_, __) => Text(
-                    'Fehler beim Laden der Daten.',
+                  error: (e, _) => Text(
+                    'Health Connect nicht verfügbar: $e',
                     style: VyroTextStyles.body.copyWith(
                       color: VyroColors.textSecondary,
                     ),
@@ -128,7 +116,6 @@ class OverviewScreen extends ConsumerWidget {
               ),
             ),
 
-            // Platz für Navigation
             const SliverToBoxAdapter(child: SizedBox(height: 100)),
           ],
         ),

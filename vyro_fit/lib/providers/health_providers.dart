@@ -1,20 +1,35 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../data/isar/isar_service.dart';
+import '../data/repositories/health_repository.dart';
 import '../data/services/health_service.dart';
 import '../models/daily_summary.dart';
 import '../models/goal.dart';
-import '../models/sleep_data.dart';
-import '../models/workout_data.dart';
+import '../models/heart_rate_data.dart';
 
-// ── Service Provider ──────────────────────────────────────────
-// HINWEIS: Repository-Layer kommt in Phase 3-6.
-// Bis dahin direkter Service-Zugriff nur in diesen Providern (nicht in UI!)
+// ── Services & Repositories ──────────────────────────────────
+// Die UI greift NIEMALS direkt auf diese Provider zu!
+// Nur über Feature-spezifische Provider (todaySummaryProvider etc.)
 
 final healthServiceProvider = Provider<HealthService>((ref) {
   return HealthService();
 });
 
+// IsarService ist ein Singleton (static init in main.dart)
+// Alle Repositories teilen dieselbe Datenbank-Instanz
+final isarServiceProvider = Provider<IsarService>((ref) {
+  return IsarService(); // nutzt die in main.dart initialisierte Instanz
+});
+
+final healthRepositoryProvider = Provider<HealthRepository>((ref) {
+  return HealthRepository(
+    ref.read(healthServiceProvider),
+    ref.read(isarServiceProvider),
+  );
+});
+
 // ── Berechtigungen ────────────────────────────────────────────
 
+/// Health Connect Permission Status
 final healthAuthorizedProvider = FutureProvider<bool>((ref) async {
   final service = ref.read(healthServiceProvider);
   return service.requestPermissions();
@@ -22,35 +37,39 @@ final healthAuthorizedProvider = FutureProvider<bool>((ref) async {
 
 // ── Tages-Daten ───────────────────────────────────────────────
 
+/// Heutige DailySummary (über Repository → Cache → Health Connect)
 final todaySummaryProvider = FutureProvider<DailySummary>((ref) async {
-  // Platzhalter bis Phase 5-6 (HealthRepository)
-  return DailySummary(date: DateTime.now());
+  return ref.read(healthRepositoryProvider).getTodaySummary();
 });
 
+/// Wöchentliche DailySummaries (7 Tage)
 final weeklySummariesProvider = FutureProvider<List<DailySummary>>((ref) async {
-  // Platzhalter bis Phase 5-6
-  final now = DateTime.now();
-  return List.generate(
-    7,
-    (i) => DailySummary(date: now.subtract(Duration(days: 6 - i))),
-  );
+  return ref.read(healthRepositoryProvider).getWeeklySummaries();
 });
 
-// ── Schlaf ────────────────────────────────────────────────────
-
-final lastSleepProvider = FutureProvider<SleepData?>((ref) async {
-  // Platzhalter bis Phase 5-6
-  return null;
+/// Monatliche DailySummaries (30 Tage)
+final monthlySummariesProvider =
+    FutureProvider<List<DailySummary>>((ref) async {
+  return ref.read(healthRepositoryProvider).getMonthlySummaries();
 });
 
-// ── Workouts ──────────────────────────────────────────────────
-
-final recentWorkoutsProvider = FutureProvider<List<WorkoutData>>((ref) async {
-  // Platzhalter bis Phase 5-6
-  return [];
+/// Wöchentliche Chart-Daten
+final weeklyChartsProvider = FutureProvider<WeeklyChartData>((ref) async {
+  return ref.read(healthRepositoryProvider).getWeeklyCharts();
 });
 
-// ── Ziele ─────────────────────────────────────────────────────
+/// Trend heute vs. letzte Woche: "+12%"
+final todayTrendProvider = FutureProvider<String>((ref) async {
+  return ref.read(healthRepositoryProvider).getTodayTrend();
+});
+
+/// HR-Timeline für heute (24h)
+final todayHRTimelineProvider =
+    FutureProvider<List<HeartRateData>>((ref) async {
+  return ref.read(healthRepositoryProvider).getTodayHRTimeline();
+});
+
+// ── Ziele (hier, da sie global gebraucht werden) ─────────────
 
 final goalsProvider = StateNotifierProvider<GoalsNotifier, List<Goal>>((ref) {
   return GoalsNotifier();
@@ -82,16 +101,12 @@ class GoalsNotifier extends StateNotifier<List<Goal>> {
           goal,
     ];
   }
+
+  Goal? getGoal(GoalType type) {
+    try {
+      return state.firstWhere((g) => g.type == type);
+    } catch (_) {
+      return null;
+    }
+  }
 }
-
-// ── Streak ────────────────────────────────────────────────────
-
-final streakProvider = StateProvider<StreakData>((ref) {
-  // Platzhalter bis Phase 6 (GoalsRepository + StreakCalculator)
-  return const StreakData(
-    currentStreak: 0,
-    longestStreak: 0,
-    weeklyGoalsCompleted: 0,
-    monthlyScore: 0,
-  );
-});
