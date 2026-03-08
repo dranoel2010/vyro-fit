@@ -1,0 +1,46 @@
+name: vyro_fit
+description: VYRO Fit – Dein Health-Data-Hub. Alle Gesundheitsdaten an einem Ort.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.2.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # Health Connect
+  health: ^10.2.0
+  
+  # State Management
+  flutter_riverpod: ^2.5.1
+  riverpod_annotation: ^2.3.5
+  
+  # Charts
+  fl_chart: ^0.68.0
+  
+  # Local Database (Caching)
+  isar: ^3.1.0+1
+  isar_flutter_libs: ^3.1.0+1
+  path_provider: ^2.1.2
+  
+  # Homescreen Widgets
+  home_widget: ^0.6.0
+  
+  # Utils
+  intl: ^0.19.0
+  
+  # Icons
+  cupertino_icons: ^1.0.6
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.1
+  riverpod_generator: ^2.4.0
+  build_runner: ^2.4.8
+  isar_generator: ^3.1.0+1
+
+flutter:
+  uses-material-design: true

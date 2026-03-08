@@ -1,0 +1,38 @@
+<!-- ═══════════════════════════════════════════════════════════════
+     VYRO Fit – Health Connect Permissions
+     
+     Diese Permissions müssen in deine AndroidManifest.xml eingefügt
+     werden (innerhalb des <manifest> Tags, vor <application>).
+     
+     Pfad: android/app/src/main/AndroidManifest.xml
+     ═══════════════════════════════════════════════════════════════ -->
+
+<!-- Health Connect Read Permissions -->
+<uses-permission android:name="android.permission.health.READ_STEPS"/>
+<uses-permission android:name="android.permission.health.READ_DISTANCE"/>
+<uses-permission android:name="android.permission.health.READ_ACTIVE_CALORIES_BURNED"/>
+<uses-permission android:name="android.permission.health.READ_TOTAL_CALORIES_BURNED"/>
+<uses-permission android:name="android.permission.health.READ_HEART_RATE"/>
+<uses-permission android:name="android.permission.health.READ_RESTING_HEART_RATE"/>
+<uses-permission android:name="android.permission.health.READ_SLEEP"/>
+<uses-permission android:name="android.permission.health.READ_EXERCISE"/>
+<uses-permission android:name="android.permission.health.READ_WEIGHT"/>
+
+<!-- 
+  Zusätzlich brauchst du in <application> diesen Intent Filter,
+  damit Health Connect deine App erkennt:
+-->
+<!--
+<activity ...>
+  <intent-filter>
+    <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />
+  </intent-filter>
+</activity>
+-->
+
+<!--
+  In android/app/build.gradle:
+  - minSdkVersion: 28
+  - compileSdkVersion: 34
+  - targetSdkVersion: 34
+-->
