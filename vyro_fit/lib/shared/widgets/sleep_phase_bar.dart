@@ -16,11 +16,12 @@ class SleepPhaseBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final phases = sleep.phasePercentages;
-    final awake = phases[SleepPhase.awake] ?? 0.0;
-    final light = phases[SleepPhase.light] ?? 0.0;
-    final deep = phases[SleepPhase.deep] ?? 0.0;
-    final rem = phases[SleepPhase.rem] ?? 0.0;
+    final phases = sleep.phasePercentages; // Map<String, double>
+    final awake = phases['awake'] ?? 0.0;
+    final light = phases['light'] ?? 0.0;
+    final deep = phases['deep'] ?? 0.0;
+    final rem = phases['rem'] ?? 0.0;
+    final hasData = awake + light + deep + rem > 0;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -28,16 +29,16 @@ class SleepPhaseBar extends StatelessWidget {
         // Balken
         ClipRRect(
           borderRadius: BorderRadius.circular(height / 2),
-          child: Row(
-            children: [
-              if (awake > 0) _PhaseSegment(flex: (awake * 100).round(), color: VyroColors.sleepAwake),
-              if (light > 0) _PhaseSegment(flex: (light * 100).round(), color: VyroColors.sleepLight),
-              if (deep > 0) _PhaseSegment(flex: (deep * 100).round(), color: VyroColors.sleepDeep),
-              if (rem > 0) _PhaseSegment(flex: (rem * 100).round(), color: VyroColors.sleepRem),
-              // Fallback wenn keine Daten
-              if (awake == 0 && light == 0 && deep == 0 && rem == 0)
-                Expanded(child: Container(height: height, color: VyroColors.accentDim)),
-            ],
+          child: SizedBox(
+            height: height,
+            child: hasData
+                ? Row(children: [
+                    if (awake > 0) _PhaseSegment(flex: (awake * 100).round(), color: VyroColors.sleepAwake),
+                    if (light > 0) _PhaseSegment(flex: (light * 100).round(), color: VyroColors.sleepLight),
+                    if (deep > 0) _PhaseSegment(flex: (deep * 100).round(), color: VyroColors.sleepDeep),
+                    if (rem > 0) _PhaseSegment(flex: (rem * 100).round(), color: VyroColors.sleepRem),
+                  ])
+                : Container(color: VyroColors.accentDim),
           ),
         ),
         const SizedBox(height: 10),

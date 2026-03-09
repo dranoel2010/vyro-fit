@@ -30,8 +30,8 @@ class RestingHRCard extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    s.restingHeartRate > 0
-                        ? NumberFormatter.bpm(s.restingHeartRate)
+                    (s.restingHeartRate ?? 0) > 0
+                        ? NumberFormatter.bpm(s.restingHeartRate!)
                         : '--',
                     style: VyroTextStyles.dataValue,
                   ),
@@ -42,27 +42,15 @@ class RestingHRCard extends ConsumerWidget {
                   ),
                   const Spacer(),
                   trend.when(
-                    data: (t) {
-                      if (t == null) return const SizedBox.shrink();
-                      final arrow = t.direction == 'up' ? '↑' : t.direction == 'down' ? '↓' : '→';
-                      final color = t.direction == 'down'
-                          ? VyroColors.accent
-                          : t.direction == 'up'
-                              ? Colors.redAccent
-                              : VyroColors.textSecondary;
-                      return Text(
-                        '$arrow ${t.formattedChange}',
-                        style: VyroTextStyles.sub.copyWith(color: color),
-                      );
-                    },
+                    data: (t) => Text(t, style: VyroTextStyles.sub),
                     loading: () => const SizedBox.shrink(),
                     error: (_, __) => const SizedBox.shrink(),
                   ),
                 ],
               ),
               const SizedBox(height: 12),
-              StatRow(label: 'Normalbereich (Alter 15)', value: '60–100 BPM', showDivider: true),
-              StatRow(label: 'Max Herzfrequenz', value: '205 BPM'),
+              const StatRow(label: 'Normalbereich (Alter 15)', value: '60–100 BPM', showDivider: true),
+              const StatRow(label: 'Max Herzfrequenz', value: '205 BPM'),
             ],
           ),
         );

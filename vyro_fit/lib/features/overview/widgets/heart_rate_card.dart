@@ -39,8 +39,8 @@ class HeartRateCard extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    s.restingHeartRate > 0
-                        ? NumberFormatter.bpm(s.restingHeartRate)
+                    (s.restingHeartRate ?? 0) > 0
+                        ? NumberFormatter.bpm(s.restingHeartRate!)
                         : '--',
                     style: VyroTextStyles.dataValueSm,
                   ),
@@ -60,7 +60,7 @@ class HeartRateCard extends ConsumerWidget {
                     );
                   }
                   return MiniLineChart(
-                    values: points.map((p) => p.value.toDouble()).toList(),
+                    values: points.map((p) => p.bpm).toList(),
                     height: 56,
                   );
                 },

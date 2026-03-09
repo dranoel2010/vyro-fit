@@ -65,7 +65,7 @@ class _WorkoutTileSmall extends StatelessWidget {
               borderRadius: BorderRadius.circular(10),
             ),
             child: Center(
-              child: Text(workout.type.emoji, style: const TextStyle(fontSize: 18)),
+              child: Text(workout.type.icon, style: const TextStyle(fontSize: 18)),
             ),
           ),
           const SizedBox(width: 12),
@@ -81,7 +81,7 @@ class _WorkoutTileSmall extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(NumberFormatter.calories(workout.activeCalories), style: VyroTextStyles.body.copyWith(color: VyroColors.accent)),
+              Text(NumberFormatter.calories(workout.caloriesBurned), style: VyroTextStyles.body.copyWith(color: VyroColors.accent)),
               Text(DateHelper.formatDuration(workout.duration), style: VyroTextStyles.caption),
             ],
           ),

@@ -2,49 +2,55 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/vyro_colors.dart';
 import '../../../core/theme/vyro_text_styles.dart';
-import '../../../data/aggregation/hr_zone_calculator.dart';
-import '../../../models/heart_rate_data.dart';
-import '../../../providers/health_providers.dart';
+import '../../../models/workout_data.dart';
+import '../../../providers/workout_providers.dart';
 import '../../../shared/widgets/vyro_card.dart';
 import '../../../shared/widgets/loading_card.dart';
 
-class HRZonesCard extends ConsumerWidget {
-  const HRZonesCard({super.key});
+class WorkoutTypesCard extends ConsumerWidget {
+  const WorkoutTypesCard({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final timeline = ref.watch(todayHRTimelineProvider);
+    final workouts = ref.watch(extendedWorkoutsProvider);
 
-    return timeline.when(
-      loading: () => const LoadingCard(height: 220),
+    return workouts.when(
+      loading: () => const LoadingCard(),
       error: (_, __) => const SizedBox.shrink(),
-      data: (points) {
-        final zoneDurations = HRZoneCalculator.calculateZoneDistribution(points);
-        final totalMs = zoneDurations.values
-            .fold<int>(0, (sum, d) => sum + d.inMilliseconds);
+      data: (list) {
+        if (list.isEmpty) return const SizedBox.shrink();
+
+        // Zähle nach Typ
+        final counts = <WorkoutType, int>{};
+        for (final w in list) {
+          counts[w.type] = (counts[w.type] ?? 0) + 1;
+        }
+        final sorted = counts.entries.toList()
+          ..sort((a, b) => b.value.compareTo(a.value));
+        final total = list.length;
 
         return VyroCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('HERZFREQUENZ-ZONEN', style: VyroTextStyles.label),
+              Text('TRAININGSARTEN (14 TAGE)', style: VyroTextStyles.label),
               const SizedBox(height: 14),
-              ...HRZone.values.map((zone) {
-                final dur = zoneDurations[zone] ?? Duration.zero;
-                final pct = totalMs > 0 ? dur.inMilliseconds / totalMs : 0.0;
-                final color = Color(HRZoneCalculator.zoneColorValue(zone));
-                final (minBpm, maxBpm) = HRZoneCalculator.zoneLimits(zone);
+              ...sorted.take(5).map((entry) {
+                final pct = entry.value / total;
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 10),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(zone.label, style: VyroTextStyles.caption),
+                          Text(entry.key.icon, style: const TextStyle(fontSize: 14)),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(entry.key.label, style: VyroTextStyles.caption),
+                          ),
                           Text(
-                            '${minBpm.round()}–${maxBpm.round()} BPM · ${dur.inMinutes} min',
+                            '${entry.value}× · ${(pct * 100).round()} %',
                             style: VyroTextStyles.caption,
                           ),
                         ],
@@ -56,14 +62,14 @@ class HRZonesCard extends ConsumerWidget {
                           children: [
                             Container(height: 6, color: VyroColors.accentDim),
                             FractionallySizedBox(
-                              widthFactor: pct.clamp(0.0, 1.0),
+                              widthFactor: pct,
                               child: Container(
                                 height: 6,
                                 decoration: BoxDecoration(
-                                  color: color,
+                                  color: VyroColors.accent,
                                   boxShadow: [
                                     BoxShadow(
-                                      color: color.withOpacity(0.4),
+                                      color: VyroColors.accent.withOpacity(0.4),
                                       blurRadius: 4,
                                     ),
                                   ],

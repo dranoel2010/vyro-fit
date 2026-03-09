@@ -4,6 +4,11 @@ import 'core/theme/vyro_colors.dart';
 import 'core/theme/vyro_theme.dart';
 import 'core/theme/vyro_text_styles.dart';
 import 'features/overview/overview_screen.dart';
+import 'features/heart/heart_screen.dart';
+import 'features/sleep/sleep_screen.dart';
+import 'features/workouts/workouts_screen.dart';
+import 'features/goals/goals_screen.dart';
+import 'features/settings/settings_screen.dart';
 import 'providers/health_providers.dart';
 
 /// VYRO Fit App – Entry Point
@@ -22,7 +27,7 @@ class VyroFitApp extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Permission Gate: prüft Health Connect vor App-Start
+// Permission Gate
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _PermissionGate extends ConsumerWidget {
@@ -56,7 +61,7 @@ class _PermissionGate extends ConsumerWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Permission Screen: Erklärungs-Screen für Health Connect
+// Permission Screen
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _PermissionScreen extends StatelessWidget {
@@ -74,19 +79,11 @@ class _PermissionScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Spacer(flex: 2),
-
-              // Brand
-              Text(
-                'Guten Morgen',
-                style: VyroTextStyles.greeting,
-              ),
+              Text('Guten Morgen', style: VyroTextStyles.greeting),
               const SizedBox(height: 8),
               Text.rich(
                 TextSpan(children: [
-                  TextSpan(
-                    text: 'VYRO ',
-                    style: VyroTextStyles.title.copyWith(fontSize: 32),
-                  ),
+                  TextSpan(text: 'VYRO ', style: VyroTextStyles.title.copyWith(fontSize: 32)),
                   TextSpan(
                     text: 'Fit',
                     style: VyroTextStyles.title.copyWith(
@@ -97,35 +94,19 @@ class _PermissionScreen extends StatelessWidget {
                   ),
                 ]),
               ),
-
               const SizedBox(height: 48),
-
-              // Erklärung
-              Text(
-                'Health Connect verbinden',
-                style: VyroTextStyles.label.copyWith(
-                  color: VyroColors.accent,
-                ),
-              ),
+              Text('Health Connect verbinden', style: VyroTextStyles.label.copyWith(color: VyroColors.accent)),
               const SizedBox(height: 12),
               Text(
                 'VYRO Fit liest deine Gesundheitsdaten direkt von Health Connect – ohne Account, ohne Cloud, ohne Altersbeschränkung.',
-                style: VyroTextStyles.body.copyWith(
-                  color: VyroColors.textSecondary,
-                  height: 1.7,
-                ),
+                style: VyroTextStyles.body.copyWith(color: VyroColors.textSecondary, height: 1.7),
               ),
               const SizedBox(height: 16),
               Text(
                 'Deine Daten bleiben ausschließlich auf deinem Gerät.',
-                style: VyroTextStyles.caption.copyWith(
-                  color: VyroColors.textSecondary,
-                ),
+                style: VyroTextStyles.caption.copyWith(color: VyroColors.textSecondary),
               ),
-
               const Spacer(flex: 3),
-
-              // Button
               SizedBox(
                 width: double.infinity,
                 height: 52,
@@ -133,16 +114,11 @@ class _PermissionScreen extends StatelessWidget {
                   onPressed: onRequest,
                   style: FilledButton.styleFrom(
                     backgroundColor: VyroColors.accent,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   ),
                   child: Text(
                     'Health Connect verbinden',
-                    style: VyroTextStyles.body.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
+                    style: VyroTextStyles.body.copyWith(fontWeight: FontWeight.w700, color: Colors.white),
                   ),
                 ),
               ),
@@ -156,7 +132,7 @@ class _PermissionScreen extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// App Shell: Haupt-Navigation mit 4 Tabs
+// App Shell: 4-Tab Navigation
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _AppShell extends StatefulWidget {
@@ -169,22 +145,26 @@ class _AppShell extends StatefulWidget {
 class _AppShellState extends State<_AppShell> {
   int _currentIndex = 0;
 
-  static const _screens = <Widget>[
-    OverviewScreen(),
-    _PlaceholderScreen(title: 'Herzfrequenz', icon: Icons.favorite_outline),
-    _PlaceholderScreen(title: 'Workouts', icon: Icons.fitness_center_outlined),
-    _PlaceholderScreen(title: 'Profil', icon: Icons.person_outline),
-  ];
+  // Für Settings-Navigation aus GoalsScreen
+  void _goToSettings() {
+    setState(() => _currentIndex = 3);
+  }
 
   @override
   Widget build(BuildContext context) {
+    final screens = <Widget>[
+      const OverviewScreen(),
+      const _StatsScreen(),
+      const WorkoutsScreen(),
+      _ProfilScreen(onGoToSettings: _goToSettings),
+    ];
+
     return Scaffold(
       backgroundColor: VyroColors.background,
       body: IndexedStack(
         index: _currentIndex,
-        children: _screens,
+        children: screens,
       ),
-      // extendBody: true → Content geht hinter NavBar (erfordert bottom padding in Screens)
       extendBody: true,
       bottomNavigationBar: _VyroNavBar(
         currentIndex: _currentIndex,
@@ -195,7 +175,160 @@ class _AppShellState extends State<_AppShell> {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// VYRO Navigation Bar: Glassmorphism-Style
+// Stats Screen: Herz | Schlaf – DefaultTabController
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _StatsScreen extends StatelessWidget {
+  const _StatsScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        backgroundColor: VyroColors.background,
+        body: SafeArea(
+          bottom: false,
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 52, 24, 0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('ANALYSE', style: VyroTextStyles.label),
+                    const SizedBox(height: 6),
+                    Text('Stats', style: VyroTextStyles.title),
+                    const SizedBox(height: 16),
+                    TabBar(
+                      tabs: const [Tab(text: 'Herz'), Tab(text: 'Schlaf')],
+                      labelStyle: VyroTextStyles.body.copyWith(fontWeight: FontWeight.w700),
+                      unselectedLabelStyle: VyroTextStyles.body,
+                      labelColor: VyroColors.accent,
+                      unselectedLabelColor: VyroColors.textSecondary,
+                      indicatorColor: VyroColors.accent,
+                      indicatorSize: TabBarIndicatorSize.label,
+                      dividerColor: VyroColors.separator,
+                    ),
+                  ],
+                ),
+              ),
+              const Expanded(
+                child: TabBarView(
+                  children: [
+                    HeartScreen(showHeader: false),
+                    SleepScreen(showHeader: false),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Profil Screen: Ziele oben + Einstellungen unten
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _ProfilScreen extends StatefulWidget {
+  final VoidCallback onGoToSettings;
+  const _ProfilScreen({required this.onGoToSettings});
+
+  @override
+  State<_ProfilScreen> createState() => _ProfilScreenState();
+}
+
+class _ProfilScreenState extends State<_ProfilScreen> {
+  int _tab = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: VyroColors.background,
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 52, 24, 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('MEIN BEREICH', style: VyroTextStyles.label),
+                  const SizedBox(height: 6),
+                  Text('Profil', style: VyroTextStyles.title),
+                  const SizedBox(height: 16),
+                  // Segmented Control
+                  Container(
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: VyroColors.card,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Row(
+                      children: [
+                        _TabChip(label: 'Ziele', selected: _tab == 0, onTap: () => setState(() => _tab = 0)),
+                        _TabChip(label: 'Einstellungen', selected: _tab == 1, onTap: () => setState(() => _tab = 1)),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                ],
+              ),
+            ),
+            Expanded(
+              child: IndexedStack(
+                index: _tab,
+                children: [
+                  GoalsScreen(onNavigateToSettings: () => setState(() => _tab = 1)),
+                  const SettingsScreen(),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TabChip extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _TabChip({required this.label, required this.selected, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          margin: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            color: selected ? VyroColors.accent.withOpacity(0.15) : Colors.transparent,
+            borderRadius: BorderRadius.circular(7),
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            label,
+            style: VyroTextStyles.caption.copyWith(
+              color: selected ? VyroColors.accent : VyroColors.textSecondary,
+              fontWeight: selected ? FontWeight.w700 : FontWeight.w300,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// VYRO Navigation Bar
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _VyroNavBar extends StatelessWidget {
@@ -208,13 +341,9 @@ class _VyroNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        // rgba(15,17,21,0.85) – leicht transluzent wie im Mockup
         color: Color(0xD90F1115),
         border: Border(
-          top: BorderSide(
-            color: Color(0x0AFFFFFF), // 4% weiß = separator
-            width: 0.5,
-          ),
+          top: BorderSide(color: Color(0x0AFFFFFF), width: 0.5),
         ),
       ),
       child: SafeArea(
@@ -223,38 +352,10 @@ class _VyroNavBar extends StatelessWidget {
           height: 58,
           child: Row(
             children: [
-              _NavItem(
-                icon: Icons.home_outlined,
-                activeIcon: Icons.home,
-                label: 'Home',
-                index: 0,
-                currentIndex: currentIndex,
-                onTap: onTap,
-              ),
-              _NavItem(
-                icon: Icons.favorite_outline,
-                activeIcon: Icons.favorite,
-                label: 'Stats',
-                index: 1,
-                currentIndex: currentIndex,
-                onTap: onTap,
-              ),
-              _NavItem(
-                icon: Icons.fitness_center_outlined,
-                activeIcon: Icons.fitness_center,
-                label: 'Workouts',
-                index: 2,
-                currentIndex: currentIndex,
-                onTap: onTap,
-              ),
-              _NavItem(
-                icon: Icons.person_outline,
-                activeIcon: Icons.person,
-                label: 'Profil',
-                index: 3,
-                currentIndex: currentIndex,
-                onTap: onTap,
-              ),
+              _NavItem(icon: Icons.home_outlined, activeIcon: Icons.home, label: 'Home', index: 0, currentIndex: currentIndex, onTap: onTap),
+              _NavItem(icon: Icons.bar_chart_outlined, activeIcon: Icons.bar_chart, label: 'Stats', index: 1, currentIndex: currentIndex, onTap: onTap),
+              _NavItem(icon: Icons.fitness_center_outlined, activeIcon: Icons.fitness_center, label: 'Workouts', index: 2, currentIndex: currentIndex, onTap: onTap),
+              _NavItem(icon: Icons.person_outline, activeIcon: Icons.person, label: 'Profil', index: 3, currentIndex: currentIndex, onTap: onTap),
             ],
           ),
         ),
@@ -291,7 +392,6 @@ class _NavItem extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Icon mit Glow wenn aktiv
             isActive
                 ? ShaderMask(
                     blendMode: BlendMode.srcIn,
@@ -300,11 +400,7 @@ class _NavItem extends StatelessWidget {
                     ).createShader(bounds),
                     child: Icon(activeIcon, size: 22),
                   )
-                : Icon(
-                    icon,
-                    size: 22,
-                    color: VyroColors.textSecondary,
-                  ),
+                : Icon(icon, size: 22, color: VyroColors.textSecondary),
             const SizedBox(height: 4),
             Text(
               label,
@@ -316,42 +412,6 @@ class _NavItem extends StatelessWidget {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Platzhalter für noch nicht implementierte Screens
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _PlaceholderScreen extends StatelessWidget {
-  final String title;
-  final IconData icon;
-  const _PlaceholderScreen({required this.title, required this.icon});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: VyroColors.background,
-      body: SafeArea(
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 48, color: VyroColors.textSecondary),
-              const SizedBox(height: 16),
-              Text(title, style: VyroTextStyles.title),
-              const SizedBox(height: 8),
-              Text(
-                'Kommt bald...',
-                style: VyroTextStyles.body.copyWith(
-                  color: VyroColors.textSecondary,
-                ),
-              ),
-            ],
-          ),
         ),
       ),
     );
