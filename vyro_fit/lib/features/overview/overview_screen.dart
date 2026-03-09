@@ -4,15 +4,19 @@ import '../../core/theme/vyro_colors.dart';
 import '../../core/theme/vyro_text_styles.dart';
 import '../../core/utils/date_helper.dart';
 import '../../core/utils/number_formatter.dart';
-import '../../providers/health_providers.dart';
+import '../../providers/goal_providers.dart';
+import './widgets/activity_score_card.dart';
+import './widgets/steps_card.dart';
+import './widgets/calories_card.dart';
+import './widgets/heart_rate_card.dart';
+import './widgets/sleep_summary_card.dart';
+import './widgets/recent_workouts_card.dart';
 
-/// Overview-Screen (Platzhalter – wird in Phase 10 vollständig implementiert)
 class OverviewScreen extends ConsumerWidget {
   const OverviewScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final todaySummary = ref.watch(todaySummaryProvider);
     final streak = ref.watch(streakProvider);
 
     return Scaffold(
@@ -21,24 +25,18 @@ class OverviewScreen extends ConsumerWidget {
         bottom: false,
         child: CustomScrollView(
           slivers: [
-            // ── Header ──────────────────────────────────────
+            // ── Header ──────────────────────────────────────────────
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(24, 52, 24, 20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      DateHelper.getGreeting(),
-                      style: VyroTextStyles.greeting,
-                    ),
+                    Text(DateHelper.getGreeting(), style: VyroTextStyles.greeting),
                     const SizedBox(height: 6),
                     Text.rich(
                       TextSpan(children: [
-                        TextSpan(
-                          text: 'VYRO ',
-                          style: VyroTextStyles.title,
-                        ),
+                        TextSpan(text: 'VYRO ', style: VyroTextStyles.title),
                         TextSpan(
                           text: 'Fit',
                           style: VyroTextStyles.title.copyWith(
@@ -48,87 +46,61 @@ class OverviewScreen extends ConsumerWidget {
                         ),
                       ]),
                     ),
+                    const SizedBox(height: 4),
+                    Text(
+                      DateHelper.formatHeaderDate(DateTime.now()),
+                      style: VyroTextStyles.caption,
+                    ),
                   ],
                 ),
               ),
             ),
 
-            // ── Streak Badges ────────────────────────────────
+            // ── Streak Badges ────────────────────────────────────────
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Row(
-                  children: [
-                    _StreakBadge(
-                      value: '${streak.currentStreak}',
-                      label: 'Tage Streak',
-                    ),
+                child: streak.when(
+                  data: (s) => Row(children: [
+                    _StreakBadge(value: '${s.currentStreak}', label: 'Tage Streak'),
+                    const SizedBox(width: 10),
+                    _StreakBadge(value: '${s.weeklyGoalsCompleted}', label: 'Wochen-Ziel'),
                     const SizedBox(width: 10),
                     _StreakBadge(
-                      value: '${streak.weeklyGoalsCompleted}',
-                      label: 'Wochen-Ziel',
-                    ),
-                    const SizedBox(width: 10),
-                    _StreakBadge(
-                      value: streak.monthlyScore > 0
-                          ? NumberFormatter.percent(streak.monthlyScore)
+                      value: s.monthlyScore > 0
+                          ? NumberFormatter.percent(s.monthlyScore)
                           : '--',
                       label: 'Monats-Score',
                     ),
-                  ],
+                  ]),
+                  loading: () => const SizedBox(height: 56),
+                  error: (_, __) => const SizedBox.shrink(),
                 ),
               ),
             ),
 
-            // ── Inhalt (Phase 10 wird hier die Cards einbauen) ──
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: todaySummary.when(
-                  data: (_) => Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 32),
-                      Icon(
-                        Icons.construction_outlined,
-                        size: 40,
-                        color: VyroColors.accent.withOpacity(0.5),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Phase 1 erfolgreich!',
-                        style: VyroTextStyles.title,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Setup abgeschlossen. Das Dashboard wird in Phase 10 implementiert.',
-                        style: VyroTextStyles.body.copyWith(
-                          color: VyroColors.textSecondary,
-                          height: 1.6,
-                        ),
-                      ),
-                    ],
-                  ),
-                  loading: () => Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(40),
-                      child: CircularProgressIndicator(
-                        color: VyroColors.accent,
-                        strokeWidth: 2,
-                      ),
-                    ),
-                  ),
-                  error: (_, __) => Text(
-                    'Fehler beim Laden der Daten.',
-                    style: VyroTextStyles.body.copyWith(
-                      color: VyroColors.textSecondary,
-                    ),
-                  ),
-                ),
+            const SliverToBoxAdapter(child: SizedBox(height: 20)),
+
+            // ── Karten ──────────────────────────────────────────────
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate([
+                  const ActivityScoreCard(animationIndex: 0),
+                  const SizedBox(height: 14),
+                  const StepsCard(animationIndex: 1),
+                  const SizedBox(height: 14),
+                  const CaloriesCard(animationIndex: 2),
+                  const SizedBox(height: 14),
+                  const HeartRateCard(animationIndex: 3),
+                  const SizedBox(height: 14),
+                  const SleepSummaryCard(animationIndex: 4),
+                  const SizedBox(height: 14),
+                  const RecentWorkoutsCard(animationIndex: 5),
+                ]),
               ),
             ),
 
-            // Platz für Navigation
             const SliverToBoxAdapter(child: SizedBox(height: 100)),
           ],
         ),
