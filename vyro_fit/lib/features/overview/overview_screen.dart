@@ -5,15 +5,18 @@ import '../../core/theme/vyro_text_styles.dart';
 import '../../core/utils/date_helper.dart';
 import '../../core/utils/number_formatter.dart';
 import '../../providers/goal_providers.dart';
-import '../../providers/health_providers.dart';
+import './widgets/activity_score_card.dart';
+import './widgets/steps_card.dart';
+import './widgets/calories_card.dart';
+import './widgets/heart_rate_card.dart';
+import './widgets/sleep_summary_card.dart';
+import './widgets/recent_workouts_card.dart';
 
-/// Overview-Screen – Platzhalter (Phase 10 implementiert vollständiges Dashboard)
 class OverviewScreen extends ConsumerWidget {
   const OverviewScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final todaySummary = ref.watch(todaySummaryProvider);
     final streak = ref.watch(streakProvider);
 
     return Scaffold(
@@ -22,7 +25,7 @@ class OverviewScreen extends ConsumerWidget {
         bottom: false,
         child: CustomScrollView(
           slivers: [
-            // ── Header ──────────────────────────────────────
+            // ── Header ──────────────────────────────────────────────
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(24, 52, 24, 20),
@@ -43,12 +46,17 @@ class OverviewScreen extends ConsumerWidget {
                         ),
                       ]),
                     ),
+                    const SizedBox(height: 4),
+                    Text(
+                      DateHelper.formatHeaderDate(DateTime.now()),
+                      style: VyroTextStyles.caption,
+                    ),
                   ],
                 ),
               ),
             ),
 
-            // ── Streak Badges ────────────────────────────────
+            // ── Streak Badges ────────────────────────────────────────
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -71,48 +79,25 @@ class OverviewScreen extends ConsumerWidget {
               ),
             ),
 
-            // ── Platzhalter-Inhalt (wird in Phase 10 ersetzt) ──
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: todaySummary.when(
-                  data: (_) => Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 32),
-                      Icon(
-                        Icons.check_circle_outline,
-                        size: 40,
-                        color: VyroColors.accent.withOpacity(0.6),
-                      ),
-                      const SizedBox(height: 16),
-                      Text('Phasen 4–8 abgeschlossen', style: VyroTextStyles.title),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Datenbank, Repositories, Aggregation und Providers sind aktiv.\nPhase 9 bringt die UI-Komponenten.',
-                        style: VyroTextStyles.body.copyWith(
-                          color: VyroColors.textSecondary,
-                          height: 1.6,
-                        ),
-                      ),
-                    ],
-                  ),
-                  loading: () => Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(40),
-                      child: CircularProgressIndicator(
-                        color: VyroColors.accent,
-                        strokeWidth: 2,
-                      ),
-                    ),
-                  ),
-                  error: (e, _) => Text(
-                    'Health Connect nicht verfügbar: $e',
-                    style: VyroTextStyles.body.copyWith(
-                      color: VyroColors.textSecondary,
-                    ),
-                  ),
-                ),
+            const SliverToBoxAdapter(child: SizedBox(height: 20)),
+
+            // ── Karten ──────────────────────────────────────────────
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate([
+                  const ActivityScoreCard(animationIndex: 0),
+                  const SizedBox(height: 14),
+                  const StepsCard(animationIndex: 1),
+                  const SizedBox(height: 14),
+                  const CaloriesCard(animationIndex: 2),
+                  const SizedBox(height: 14),
+                  const HeartRateCard(animationIndex: 3),
+                  const SizedBox(height: 14),
+                  const SleepSummaryCard(animationIndex: 4),
+                  const SizedBox(height: 14),
+                  const RecentWorkoutsCard(animationIndex: 5),
+                ]),
               ),
             ),
 
